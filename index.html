@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Math Practice</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+  .card {
+    background: #1e293b;
+    padding: 2rem 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    width: min(420px, 90vw);
+    text-align: center;
+  }
+  h1 { margin: 0 0 0.5rem; font-size: 1.4rem; }
+  .stats { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.5rem; }
+  .problem { font-size: 2.8rem; font-weight: 600; margin: 1rem 0; }
+  input {
+    font-size: 1.5rem;
+    padding: 0.5rem 0.75rem;
+    width: 120px;
+    text-align: center;
+    border: 2px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    outline: none;
+  }
+  input:focus { border-color: #38bdf8; }
+  button {
+    margin-top: 1.25rem;
+    padding: 0.6rem 1.5rem;
+    font-size: 1rem;
+    background: #38bdf8;
+    color: #0f172a;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  button:hover { background: #0ea5e9; }
+  .mode {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .mode button {
+    margin-top: 0;
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    background: #334155;
+    color: #e2e8f0;
+  }
+  .mode button.active {
+    background: #38bdf8;
+    color: #0f172a;
+  }
+  .mode button:hover { background: #475569; }
+  .mode button.active:hover { background: #0ea5e9; }
+  .feedback { margin-top: 1rem; font-size: 1rem; min-height: 1.5rem; }
+  .correct { color: #4ade80; }
+  .wrong { color: #f87171; }
+  .range {
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    color: #94a3b8;
+  }
+  .range label { margin: 0 0.5rem; }
+  .range input {
+    width: 50px;
+    font-size: 0.9rem;
+    padding: 0.25rem;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="title">Division Practice</h1>
+    <div class="mode">
+      <button id="modeDiv" class="active" data-mode="div">÷ Division</button>
+      <button id="modeMul" data-mode="mul">× Multiplication</button>
+    </div>
+    <div class="stats">
+      Correct: <span id="correct">0</span> &nbsp;|&nbsp;
+      Wrong: <span id="wrong">0</span> &nbsp;|&nbsp;
+      Streak: <span id="streak">0</span>
+    </div>
+    <div class="problem" id="problem">— ÷ —</div>
+    <input id="answer" type="number" autocomplete="off" />
+    <br />
+    <button id="submit">Check</button>
+    <div class="feedback" id="feedback">&nbsp;</div>
+    <div class="range">
+      Table range:
+      <label>min <input id="min" type="number" value="1" min="1" max="12" /></label>
+      <label>max <input id="max" type="number" value="12" min="1" max="12" /></label>
+    </div>
+  </div>
+
+<script>
+  const problemEl = document.getElementById('problem');
+  const answerEl = document.getElementById('answer');
+  const submitEl = document.getElementById('submit');
+  const feedbackEl = document.getElementById('feedback');
+  const correctEl = document.getElementById('correct');
+  const wrongEl = document.getElementById('wrong');
+  const streakEl = document.getElementById('streak');
+  const minEl = document.getElementById('min');
+  const maxEl = document.getElementById('max');
+  const titleEl = document.getElementById('title');
+  const modeDivEl = document.getElementById('modeDiv');
+  const modeMulEl = document.getElementById('modeMul');
+
+  let mode = 'div';
+  let current = { a: 0, b: 0, answer: 0 };
+  let correct = 0, wrong = 0, streak = 0;
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function nextProblem() {
+    const min = Math.max(1, Math.min(12, parseInt(minEl.value) || 1));
+    const max = Math.max(min, Math.min(12, parseInt(maxEl.value) || 12));
+    const a = randInt(min, max);
+    const b = randInt(min, max);
+    if (mode === 'div') {
+      current.a = a * b;
+      current.b = b;
+      current.answer = a;
+      problemEl.textContent = `${current.a} ÷ ${current.b}`;
+    } else {
+      current.a = a;
+      current.b = b;
+      current.answer = a * b;
+      problemEl.textContent = `${current.a} × ${current.b}`;
+    }
+    answerEl.value = '';
+    answerEl.focus();
+  }
+
+  function setMode(next) {
+    if (mode === next) return;
+    mode = next;
+    modeDivEl.classList.toggle('active', mode === 'div');
+    modeMulEl.classList.toggle('active', mode === 'mul');
+    titleEl.textContent = mode === 'div' ? 'Division Practice' : 'Multiplication Practice';
+    feedbackEl.textContent = '\u00A0';
+    feedbackEl.className = 'feedback';
+    nextProblem();
+  }
+
+  function check() {
+    const val = parseInt(answerEl.value);
+    if (Number.isNaN(val)) return;
+    if (val === current.answer) {
+      correct++;
+      streak++;
+      feedbackEl.textContent = 'Correct!';
+      feedbackEl.className = 'feedback correct';
+      correctEl.textContent = correct;
+      streakEl.textContent = streak;
+      setTimeout(() => {
+        feedbackEl.textContent = '\u00A0';
+        feedbackEl.className = 'feedback';
+        nextProblem();
+      }, 600);
+    } else {
+      wrong++;
+      streak = 0;
+      const op = mode === 'div' ? '÷' : '×';
+      feedbackEl.textContent = `Wrong. ${current.a} ${op} ${current.b} = ${current.answer}`;
+      feedbackEl.className = 'feedback wrong';
+      wrongEl.textContent = wrong;
+      streakEl.textContent = streak;
+      setTimeout(nextProblem, 1500);
+    }
+  }
+
+  submitEl.addEventListener('click', check);
+  answerEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') check();
+  });
+  modeDivEl.addEventListener('click', () => setMode('div'));
+  modeMulEl.addEventListener('click', () => setMode('mul'));
+
+  nextProblem();
+</script>
+</body>
+</html>
