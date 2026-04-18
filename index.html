@@ -83,6 +83,29 @@
     font-size: 0.9rem;
     padding: 0.25rem;
   }
+  .hidden { display: none !important; }
+  .table-wrap {
+    margin: 1rem 0 0.5rem;
+    overflow-x: auto;
+  }
+  table.mtable {
+    border-collapse: collapse;
+    margin: 0 auto;
+    font-size: 0.85rem;
+  }
+  table.mtable th, table.mtable td {
+    border: 1px solid #334155;
+    padding: 0.35rem 0.5rem;
+    min-width: 2.2rem;
+    text-align: center;
+  }
+  table.mtable thead th, table.mtable tbody th {
+    background: #0f172a;
+    color: #38bdf8;
+    font-weight: 600;
+  }
+  table.mtable tbody td { color: #e2e8f0; }
+  table.mtable tbody tr:nth-child(even) td { background: #243244; }
 </style>
 </head>
 <body>
@@ -91,17 +114,21 @@
     <div class="mode">
       <button id="modeDiv" class="active" data-mode="div">÷ Division</button>
       <button id="modeMul" data-mode="mul">× Multiplication</button>
+      <button id="modeTable" data-mode="table">📋 Table</button>
     </div>
-    <div class="stats">
-      Correct: <span id="correct">0</span> &nbsp;|&nbsp;
-      Wrong: <span id="wrong">0</span> &nbsp;|&nbsp;
-      Streak: <span id="streak">0</span>
+    <div id="practice">
+      <div class="stats">
+        Correct: <span id="correct">0</span> &nbsp;|&nbsp;
+        Wrong: <span id="wrong">0</span> &nbsp;|&nbsp;
+        Streak: <span id="streak">0</span>
+      </div>
+      <div class="problem" id="problem">— ÷ —</div>
+      <input id="answer" type="number" autocomplete="off" />
+      <br />
+      <button id="submit">Check</button>
+      <div class="feedback" id="feedback">&nbsp;</div>
     </div>
-    <div class="problem" id="problem">— ÷ —</div>
-    <input id="answer" type="number" autocomplete="off" />
-    <br />
-    <button id="submit">Check</button>
-    <div class="feedback" id="feedback">&nbsp;</div>
+    <div id="tableView" class="table-wrap hidden"></div>
     <div class="range">
       Table range:
       <label>min <input id="min" type="number" value="1" min="1" max="12" /></label>
@@ -122,6 +149,9 @@
   const titleEl = document.getElementById('title');
   const modeDivEl = document.getElementById('modeDiv');
   const modeMulEl = document.getElementById('modeMul');
+  const modeTableEl = document.getElementById('modeTable');
+  const practiceEl = document.getElementById('practice');
+  const tableViewEl = document.getElementById('tableView');
 
   let mode = 'div';
   let current = { a: 0, b: 0, answer: 0 };
@@ -151,15 +181,45 @@
     answerEl.focus();
   }
 
+  function rangeBounds() {
+    const min = Math.max(1, Math.min(12, parseInt(minEl.value) || 1));
+    const max = Math.max(min, Math.min(12, parseInt(maxEl.value) || 12));
+    return { min, max };
+  }
+
+  function renderTable() {
+    const { min, max } = rangeBounds();
+    let html = '<table class="mtable"><thead><tr><th>×</th>';
+    for (let c = min; c <= max; c++) html += `<th>${c}</th>`;
+    html += '</tr></thead><tbody>';
+    for (let r = min; r <= max; r++) {
+      html += `<tr><th>${r}</th>`;
+      for (let c = min; c <= max; c++) html += `<td>${r * c}</td>`;
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    tableViewEl.innerHTML = html;
+  }
+
   function setMode(next) {
     if (mode === next) return;
     mode = next;
     modeDivEl.classList.toggle('active', mode === 'div');
     modeMulEl.classList.toggle('active', mode === 'mul');
-    titleEl.textContent = mode === 'div' ? 'Division Practice' : 'Multiplication Practice';
+    modeTableEl.classList.toggle('active', mode === 'table');
+    const titles = { div: 'Division Practice', mul: 'Multiplication Practice', table: 'Multiplication Table' };
+    titleEl.textContent = titles[mode];
     feedbackEl.textContent = '\u00A0';
     feedbackEl.className = 'feedback';
-    nextProblem();
+    if (mode === 'table') {
+      practiceEl.classList.add('hidden');
+      tableViewEl.classList.remove('hidden');
+      renderTable();
+    } else {
+      tableViewEl.classList.add('hidden');
+      practiceEl.classList.remove('hidden');
+      nextProblem();
+    }
   }
 
   function check() {
@@ -195,6 +255,9 @@
   });
   modeDivEl.addEventListener('click', () => setMode('div'));
   modeMulEl.addEventListener('click', () => setMode('mul'));
+  modeTableEl.addEventListener('click', () => setMode('table'));
+  minEl.addEventListener('change', () => { if (mode === 'table') renderTable(); });
+  maxEl.addEventListener('change', () => { if (mode === 'table') renderTable(); });
 
   nextProblem();
 </script>
