@@ -22,7 +22,9 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     width: min(420px, 90vw);
     text-align: center;
+    transition: width 0.2s ease;
   }
+  .card.wide { width: min(640px, 95vw); }
   h1 { margin: 0 0 0.5rem; font-size: 1.4rem; }
   .stats { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.5rem; }
   .problem { font-size: 2.8rem; font-weight: 600; margin: 1rem 0; }
@@ -91,12 +93,13 @@
   table.mtable {
     border-collapse: collapse;
     margin: 0 auto;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    width: 100%;
+    table-layout: fixed;
   }
   table.mtable th, table.mtable td {
     border: 1px solid #334155;
-    padding: 0.35rem 0.5rem;
-    min-width: 2.2rem;
+    padding: 0.3rem 0.2rem;
     text-align: center;
   }
   table.mtable thead th, table.mtable tbody th {
@@ -109,7 +112,7 @@
 </style>
 </head>
 <body>
-  <div class="card">
+  <div class="card" id="card">
     <h1 id="title">Division Practice</h1>
     <div class="mode">
       <button id="modeDiv" class="active" data-mode="div">÷ Division</button>
@@ -152,6 +155,7 @@
   const modeTableEl = document.getElementById('modeTable');
   const practiceEl = document.getElementById('practice');
   const tableViewEl = document.getElementById('tableView');
+  const cardEl = document.getElementById('card');
 
   let mode = 'div';
   let current = { a: 0, b: 0, answer: 0 };
@@ -211,6 +215,7 @@
     titleEl.textContent = titles[mode];
     feedbackEl.textContent = '\u00A0';
     feedbackEl.className = 'feedback';
+    cardEl.classList.toggle('wide', mode === 'table');
     if (mode === 'table') {
       practiceEl.classList.add('hidden');
       tableViewEl.classList.remove('hidden');
